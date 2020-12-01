@@ -19,7 +19,7 @@
 #include "dap/serialization.h"
 #include "dap/types.h"
 
-#include <nlohmann/json_fwd.hpp>
+#include <rapidjson/document.h>
 
 namespace dap {
 namespace json {
@@ -72,9 +72,12 @@ struct Deserializer : public dap::Deserializer {
     return dap::Deserializer::deserialize(name, v);
   }
 
+  inline rapidjson::Value* json() const { return ownsJson ? doc : val; }
+
  private:
-  Deserializer(const nlohmann::json*);
-  const nlohmann::json* const json;
+  Deserializer(rapidjson::Value*);
+  rapidjson::Document* const doc = nullptr;
+  rapidjson::Value* const val = nullptr;
   const bool ownsJson;
 };
 
@@ -120,9 +123,13 @@ struct Serializer : public dap::Serializer {
 
   inline bool serialize(const char* v) { return dap::Serializer::serialize(v); }
 
+  inline rapidjson::Value* json() const { return ownsJson ? doc : val; }
+
  private:
-  Serializer(nlohmann::json*);
-  nlohmann::json* const json;
+  Serializer(rapidjson::Value*, rapidjson::Document::AllocatorType&);
+  rapidjson::Document* const doc = nullptr;
+  rapidjson::Value* const val = nullptr;
+  rapidjson::Document::AllocatorType& allocator;
   const bool ownsJson;
   bool removed = false;
 };
